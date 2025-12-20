@@ -30,3 +30,4 @@ shit/
 *.db
 .vscode/
 creditcard_2023.csv
+*.ipynb
