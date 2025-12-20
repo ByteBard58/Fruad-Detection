@@ -1,0 +1,3 @@
+The primary dataset file (Dataset/creditcard_2023.csv) is ignored with .gitignore because of it's size.
+You can access it from the official Kaggle page. The link:
+https://www.kaggle.com/datasets/nelgiriyewithana/credit-card-fraud-detection-dataset-2023/
