@@ -43,13 +43,13 @@ def _():
     from sklearn.ensemble import RandomForestClassifier, StackingClassifier
     from xgboost import XGBClassifier
 
-    from sklearn.model_selection import RandomizedSearchCV,GridSearchCV,learning_curve
+    from sklearn.model_selection import RandomizedSearchCV,GridSearchCV,learning_curve,train_test_split
     from sklearn.decomposition import PCA
     from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
 
     from imblearn.pipeline import Pipeline
     from imblearn.over_sampling import SMOTE
-    return pd, plt, sns
+    return Pipeline, pd, plt, sns, train_test_split
 
 
 @app.cell(hide_code=True)
@@ -126,6 +126,51 @@ def _(df):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    ### Input-output separation and dataset sampling
+    """)
+    return
+
+
+@app.cell
+def _(df):
+    x_full = df.iloc[:,:-1]
+    y_full = df.iloc[:,-1]
+    return x_full, y_full
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Use `train_test_split` to get a smaller dataset
+    """)
+    return
+
+
+@app.cell
+def _(train_test_split, x_full, y_full):
+    x_sample,_,y_sample,_ = train_test_split(
+        x_full,y_full,train_size=50_000,random_state=123,shuffle=True,stratify=y_full
+    )
+    return x_sample, y_sample
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Check class proportion
+    """)
+    return
+
+
+@app.cell
+def _(y_sample):
+    y_sample.value_counts()
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ## EDA (Exploratory Data Analysis)
     """)
     return
@@ -178,6 +223,46 @@ def _(mo):
     mo.md(r"""
     The countplot reveals perfect class balance between **Class 1(Fraudulent)** and **Class 0(Normal Transaction)**. It means there is not much need for SMOTE(Synthetic Minority Over-sampling Technique) in our pipeline.
     """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Machine Learning Part
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Final Split
+    """)
+    return
+
+
+@app.cell
+def _(train_test_split, x_sample, y_sample):
+    x_train, x_test, y_train, y_test = train_test_split(
+        x_sample,y_sample,test_size=0.2,random_state=432,shuffle=True,stratify=y_sample
+    )
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Define Pipeline
+    """)
+    return
+
+
+@app.cell
+def _(Pipeline):
+    pipe = Pipeline(
+        [""]
+    )
     return
 
 
