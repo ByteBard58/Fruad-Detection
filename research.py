@@ -40,16 +40,36 @@ def _():
 
     from sklearn.linear_model import LogisticRegression
     from sklearn.svm import SVC
-    from sklearn.ensemble import RandomForestClassifier, StackingClassifier
+    from sklearn.ensemble import RandomForestClassifier, StackingClassifier, BaggingClassifier
     from xgboost import XGBClassifier
 
     from sklearn.model_selection import RandomizedSearchCV,GridSearchCV,learning_curve,train_test_split
+    from sklearn.impute import SimpleImputer
+    from sklearn.preprocessing import StandardScaler
     from sklearn.decomposition import PCA
     from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
 
     from imblearn.pipeline import Pipeline
     from imblearn.over_sampling import SMOTE
-    return Pipeline, pd, plt, sns, train_test_split
+    return (
+        BaggingClassifier,
+        LDA,
+        LogisticRegression,
+        PCA,
+        Pipeline,
+        RandomForestClassifier,
+        RandomizedSearchCV,
+        SVC,
+        SimpleImputer,
+        StandardScaler,
+        XGBClassifier,
+        np,
+        pd,
+        plt,
+        sns,
+        time,
+        train_test_split,
+    )
 
 
 @app.cell(hide_code=True)
@@ -120,7 +140,7 @@ def _(mo):
 def _(df):
     feat_names = df.iloc[:,:-1].columns
     all_names = df.columns
-    return
+    return (feat_names,)
 
 
 @app.cell(hide_code=True)
@@ -247,7 +267,7 @@ def _(train_test_split, x_sample, y_sample):
     x_train, x_test, y_train, y_test = train_test_split(
         x_sample,y_sample,test_size=0.2,random_state=432,shuffle=True,stratify=y_sample
     )
-    return
+    return x_train, y_train
 
 
 @app.cell(hide_code=True)
@@ -259,10 +279,185 @@ def _(mo):
 
 
 @app.cell
-def _(Pipeline):
-    pipe = Pipeline(
-        [""]
+def _(
+    BaggingClassifier,
+    LDA,
+    LogisticRegression,
+    PCA,
+    Pipeline,
+    RandomForestClassifier,
+    SVC,
+    SimpleImputer,
+    StandardScaler,
+    XGBClassifier,
+):
+    pipe = Pipeline([
+        ("impute",SimpleImputer(strategy="median")),
+        ("scale",StandardScaler()),
+        ("dimen",PCA(random_state=9987)),
+        ("model",RandomForestClassifier(random_state=10243))
+    ])
+
+    rf = RandomForestClassifier(class_weight="balanced",random_state=32)
+    lr = LogisticRegression(class_weight="balanced",random_state=43)
+    svc = SVC(class_weight="balanced",random_state=78)
+    xgb = XGBClassifier(random_state=902)
+    bagclf = BaggingClassifier(random_state=1934)
+
+    lda = LDA(n_components=1)
+    pca = PCA(random_state=99877)
+    return lda, pca, pipe, rf, svc, xgb
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Randomized Search
+    """)
+    return
+
+
+@app.cell
+def _(lda, pca, rf, svc, xgb):
+    param_grid = [
+        { ## RF, NO DIMEN
+            "model":[rf], "model__n_estimators":[700,900,1200], "model__max_depth":[7,10,15], 
+            "dimen": ["passthrough"]
+        },
+        { ## RF, LDA
+            "model":[rf], "model__n_estimators":[700,900,1200], "model__max_depth":[7,10,15], 
+            "dimen": [lda]
+        },
+        { ## RF, PCA
+            "model":[rf], "model__n_estimators":[700,900,1200], "model__max_depth":[7,10,15], 
+            "dimen":[pca],"dimen__n_components": [18,24,28]
+        },
+        { ## XGB, NO DIMEN
+            "model":[xgb], "model__n_estimators":[600,900], "model__max_depth":[7,10,15],
+            "dimen": ["passthrough"], "model__learning_rate": [0.01,0.1]
+        },
+        { ## XGB, PCA
+            "model":[xgb], "model__n_estimators":[600,900], "model__max_depth":[7,10,15],
+            "dimen":[pca],"dimen__n_components": [18,24,28], "model__learning_rate": [0.01,0.1]
+        },
+        { ## SVC, NO DIMEN
+            "model": [svc], "model__C":[0.01,0.1,1,10,100], "model__kernel":["rbf"],"model__gamma":[0.1,0.5,1],
+            "dimen": ["passthrough"]
+        }
+    ]
+    return (param_grid,)
+
+
+@app.cell
+def _(RandomizedSearchCV, param_grid, pipe):
+    rscv = RandomizedSearchCV(
+        param_distributions=param_grid,estimator=pipe,
+        cv=5,n_iter=10,n_jobs=3,
+        random_state=31945,refit=True,verbose=1,
     )
+    return (rscv,)
+
+
+@app.cell
+def _(np, rscv, time, x_train, y_train):
+    t1 = time.time()
+    rscv.fit(x_train,y_train)
+    t2 = time.time()
+    elapsed = t2 - t1
+    minutes, seconds = np.divmod(elapsed,60)
+    print(f"Time Elapsed: {minutes} Minute {seconds} Seconds")
+
+    est = rscv.best_estimator_
+    scr = rscv.best_score_
+    config = rscv.best_params_
+    print(f"Best Score = {scr}")
+    print(f"Best Configuration;\n{config}")
+    return (est,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Ok, that is truly wonderful! **XGBClassifier (Extreme Gradient Boost)** has yielded a **near perfect score(≈0.99)** with **PCA** feature extraction turned on.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## PCA Loading
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Now, let's do some analysis on the PCA that is performed in the model.
+    """)
+    return
+
+
+@app.cell
+def _(est):
+    pca_est = est.named_steps["dimen"]
+    comps = pca_est.components_.T  # Components
+    exp_var = pca_est.explained_variance_  # Explained Variance
+    return comps, exp_var
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    As we know,
+    $$\text{Loadings} = \text{pca.components\_}^T \times \sqrt{\text{pca.explained\_variance\_}}$$
+    """)
+    return
+
+
+@app.cell
+def _(comps, exp_var, np):
+    loadings = comps * np.sqrt(exp_var)  ## Raw Loading
+    return (loadings,)
+
+
+@app.cell
+def _(comps, feat_names, loadings, np, pd):
+    sz = np.size(comps,axis=1)
+    loading_df = pd.DataFrame(data=loadings, columns=[f"PC{n}" for n in range(sz)], index=feat_names)
+    return (loading_df,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Now, let's visualize it with a heatmap
+    """)
+    return
+
+
+@app.cell
+def _(loading_df, plt, sns):
+    plt.figure(figsize=(11,7))
+    sns.heatmap(loading_df,annot=True,cmap="icefire",center=0,fmt=".1f")
+    plt.show()
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    PC0 acts as a general factor capturing the core variance of most V-features, while subsequent components isolate unique relationships like the strong influence of V21 on PC1. The "Amount" variable is statistically independent of the primary features, influencing only specialized dimensions like PC6 and PC7 rather than the main variance. The high concentration of strong loadings in the initial components proves that the 29 original variables are driven by a small number of dominant underlying patterns.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Learning Curve
+    """)
     return
 
 
