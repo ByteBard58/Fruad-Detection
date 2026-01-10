@@ -35,6 +35,7 @@ def get_data(path = file_path) -> tuple[np.ndarray,np.ndarray,pd.Index]:
     df_raw:pd.DataFrame = pd.read_csv(path)
     df_1:pd.DataFrame = df_raw.drop(columns=["id"])
     df:pd.DataFrame = df_1.copy()
+    # Save feature names for inference/production use
     feat_names:pd.Index = df.iloc[:,:-1].columns
     x_full:pd.DataFrame = df.iloc[:,:-1]
     y_full:pd.Series = df.iloc[:,-1]
@@ -85,6 +86,7 @@ def main() -> None:
 
     evaluate(pipe,x_test,y_test)
 
+    # Create models directory if it doesn't exist
     os.makedirs("models", exist_ok=True)
     # Save the pipeline and feature names for inference/production use
     joblib.dump(pipe,"models/pipe.pkl")
