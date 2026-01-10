@@ -48,6 +48,7 @@ def _():
     from sklearn.preprocessing import StandardScaler
     from sklearn.decomposition import PCA
     from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
+    from sklearn.metrics import confusion_matrix, classification_report
 
     from imblearn.pipeline import Pipeline
     from imblearn.over_sampling import SMOTE
@@ -63,6 +64,8 @@ def _():
         SimpleImputer,
         StandardScaler,
         XGBClassifier,
+        classification_report,
+        confusion_matrix,
         learning_curve,
         np,
         pd,
@@ -192,6 +195,14 @@ def _(y_sample):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    It seems like the class proportion is as expected. Now, let's move on to EDA.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ## EDA (Exploratory Data Analysis)
     """)
     return
@@ -250,6 +261,15 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    #### Note on Class Balance
+    This dataset is artificially balanced for research purposes. In real-world fraud detection, fraudulent transactions are extremely rare, and techniques such as cost-sensitive learning or resampling would be mandatory.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ## Machine Learning Part
     """)
     return
@@ -268,7 +288,7 @@ def _(train_test_split, x_sample, y_sample):
     x_train, x_test, y_train, y_test = train_test_split(
         x_sample,y_sample,test_size=0.2,random_state=432,shuffle=True,stratify=y_sample
     )
-    return x_train, y_train
+    return x_test, x_train, y_test, y_train
 
 
 @app.cell(hide_code=True)
@@ -354,7 +374,7 @@ def _(RandomizedSearchCV, param_grid, pipe):
     rscv = RandomizedSearchCV(
         param_distributions=param_grid,estimator=pipe,
         cv=5,n_iter=10,n_jobs=3,
-        random_state=31945,refit=True,verbose=1,
+        random_state=31945,refit=True,verbose=1
     )
     return (rscv,)
 
@@ -387,7 +407,79 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## PCA Loading
+    **NOTE:** As we all know, accuracy is often considered a useless metric. It doesn't focus on the significant details, which are only visible in the real space. To truly evaluate the model's robustness, we need to look at some other metrics like precision and recall.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Confusion Matrix
+    Let's take a look at the confusion matrix of the model, which will help us to analyze the model's performance in reality.
+    """)
+    return
+
+
+@app.cell
+def _(confusion_matrix, est, x_test, y_test):
+    y_true = y_test
+    y_pred = est.predict(x_test)
+    conf_matrix = confusion_matrix(y_true=y_true, y_pred=y_pred)
+    return conf_matrix, y_pred, y_true
+
+
+@app.cell
+def _(conf_matrix, plt, sns):
+    classes = [0,1]
+
+    plt.figure(figsize=(8, 6))
+    sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='flare', 
+                xticklabels=classes, yticklabels=classes)
+
+    plt.xlabel('Predicted Label')
+    plt.ylabel('True Label')
+    plt.title('Confusion Matrix Heatmap')
+    plt.show()
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Alright. So the confusion matrix plot shows us that there are **no False Negatives** in our test, which means no fraudulent transaction should get through our model undetected. However, there are a few false positives, which may cause some manual review; the probability appears to be pretty low.
+
+    Now, let's take a look at the **classification report**, which will let us check the metrics in one glance.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Classification Report
+    """)
+    return
+
+
+@app.cell
+def _(classification_report, y_pred, y_true):
+    print(classification_report(y_true,y_pred))
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    The classification report is indicating that the model is perfect from every metric's POV. Now, we can clearly declare this model as good-to-go without just relying on the accuracy.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### PCA Loading
     """)
     return
 
@@ -434,7 +526,7 @@ def _(comps, exp_var, np):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ### Create Pandas DataFrame
+    ### Create Loading DataFrame
     """)
     return
 
@@ -449,7 +541,7 @@ def _(comps, feat_names, loadings, np, pd):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ### Heatmap
+    ### Loading Heatmap
     """)
     return
 
@@ -466,6 +558,9 @@ def _(mo):
 def _(loading_df, plt, sns):
     plt.figure(figsize=(11,7))
     sns.heatmap(loading_df,annot=True,cmap="icefire",center=0,fmt=".1f")
+    plt.title("PCA Loading Heatmap", fontdict={"fontsize":15})
+    plt.xlabel("Features", fontdict={"fontsize":13})
+    plt.ylabel("Features", fontdict={"fontsize":13})
     plt.show()
     return
 
@@ -474,6 +569,8 @@ def _(loading_df, plt, sns):
 def _(mo):
     mo.md(r"""
     PC0 acts as a general factor capturing the core variance of most V-features, while subsequent components isolate unique relationships like the strong influence of V21 on PC1. The "Amount" variable is statistically independent of the primary features, influencing only specialized dimensions like PC6 and PC7 rather than the main variance. The high concentration of strong loadings in the initial components proves that the 29 original variables are driven by a few dominant underlying patterns.
+
+    However, due to feature anonymization, PCA interpretation remains statistical rather than semantic.
     """)
     return
 
@@ -538,7 +635,9 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    In this notebook, we have successfully designed a near-perfect ML model to classify transactions as Fraudulent or Valid. We also looked at some important plots, which helped us to make more sense of the model and the data itself.
+    In this notebook, we have successfully designed a near-perfect ML model to classify transactions as fraudulent or valid. We also looked at some important plots, which helped us to make more sense of the model and the data itself.
+
+    We have chosen **XGBClassifier** with **PCA** feature extraction as our primary classifier because of its leading performance in `RandomizedSearchCV`. The feature extraction has helped to reduce complexity in the data and contributed to the overall robustness of the model. Instead of relying just on accuracy score, we evaluated other metrics like precision, recall and f1-score, which indicates that the model is truly robust for real-life implications.
 
     **Thank you** for taking your time to review this notebook. I hope you enjoyed it. If you have any comments or feedback, please share it with me. The code from this notebook will be used in other aspects of the project.
     """)
