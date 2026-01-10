@@ -26,9 +26,11 @@ from sklearn.decomposition import PCA
 from sklearn.metrics import classification_report
 from imblearn.pipeline import Pipeline
 
+# Load environment variables from .env file
 load_dotenv()
 file_path = os.getenv("DATA_PATH")
 
+# Function to load the data and perform basic preprocessing
 def get_data(path = file_path) -> tuple[np.ndarray,np.ndarray,pd.Index]:
     df_raw:pd.DataFrame = pd.read_csv(path)
     df_1:pd.DataFrame = df_raw.drop(columns=["id"])
@@ -36,29 +38,34 @@ def get_data(path = file_path) -> tuple[np.ndarray,np.ndarray,pd.Index]:
     feat_names:pd.Index = df.iloc[:,:-1].columns
     x_full:pd.DataFrame = df.iloc[:,:-1]
     y_full:pd.Series = df.iloc[:,-1]
+    # Downsample to 50k rows to speed up training, while maintaining class balance
     x_sample,_,y_sample,_ = train_test_split(
         x_full,y_full,train_size=50_000,random_state=123,shuffle=True,stratify=y_full
     )
     return x_sample, y_sample, feat_names
 
+# Function to create a pipeline
 def get_pipe() -> Pipeline:
+    # Model selection and hyperparameter tuning is inspired from research.py notebook
     pipe_model:BaseEstimator = XGBClassifier(
         n_estimators=600,max_depth=10, learning_rate=0.1
     )
     pipe:Pipeline = Pipeline([
-        ("impute",SimpleImputer(strategy="median")),
+        ("impute",SimpleImputer(strategy="median")), # Fill missing values with median
         ("scale",StandardScaler()),
-        ("dimen",PCA(random_state=9987,n_components=24)),
+        ("dimen",PCA(random_state=9987,n_components=24)), # n_components is chosen based on PCA analysis from research.py notebook
         ("model",pipe_model)
     ])
     return pipe
 
+# Evaluation function to print classification report
 def evaluate(est:BaseEstimator,x_test:np.ndarray,y_test:np.ndarray) -> None:
     y_true:np.ndarray = y_test
     y_pred:np.ndarray = est.predict(x_test)
     print("Classification Report:")
     print(classification_report(y_true,y_pred))
 
+# Main function to fit the model and save it to a pickle file
 def main() -> None:
     x_sample, y_sample, feat_names = get_data()
     x_train, x_test, y_train, y_test = train_test_split(
@@ -79,6 +86,7 @@ def main() -> None:
     evaluate(pipe,x_test,y_test)
 
     os.makedirs("models", exist_ok=True)
+    # Save the pipeline and feature names for inference/production use
     joblib.dump(pipe,"models/pipe.pkl")
     joblib.dump(feat_names,"models/feat_names.pkl")
     print("Models saved successfully ✅")
