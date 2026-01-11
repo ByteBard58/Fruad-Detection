@@ -30,4 +30,5 @@ shit/
 *.db
 .vscode/
 creditcard_2023.csv
+Dataset/sample_data.csv
 *.ipynb
