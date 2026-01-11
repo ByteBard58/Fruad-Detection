@@ -10,6 +10,7 @@ import secrets
 import pandas as pd
 import joblib
 from flask import Flask, render_template, request, jsonify, send_file, redirect
+from fit import main as train_model
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)
@@ -29,6 +30,18 @@ feature_names = None
 
 def load_model():
     global pipeline, feature_names
+    
+    # Self-healing: Check if model artifacts exist
+    if not os.path.exists(MODEL_PATH) or not os.path.exists(FEAT_NAMES_PATH):
+        print("⚠️ Model artifacts not found. Initiating self-healing protocol...")
+        print("🔄 Running training script (fit.py)... this may take a moment.")
+        try:
+            train_model()
+            print("✅ Training complete. Artifacts regenerated.")
+        except Exception as e:
+            print(f"❌ Critical Error during self-healing: {e}")
+            return
+
     if os.path.exists(MODEL_PATH) and os.path.exists(FEAT_NAMES_PATH):
         try:
             print(f"Loading model from {MODEL_PATH}...")
@@ -40,7 +53,7 @@ def load_model():
             pipeline = None
             feature_names = None
     else:
-        print("Model files not found. Please run fit.py first.")
+        print("Model files still not found after training attempt.")
 
 # Load model on startup
 load_model()
