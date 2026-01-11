@@ -46,7 +46,7 @@
                         <th>Transaction ID</th>
                         <th>Risk Store (Prob.)</th>
                         <th>Prediction</th>
-                        <th>Amount (V1 scaled?)</th> <!-- Placeholder column name since anonymous -->
+                        <th>Feature V1 (Anonymized)</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -75,8 +75,7 @@
                             {% endif %}
                         </td>
                         <td style="font-family: monospace;">
-                            {# Just showing V1 as an example feature #}
-                            {{ row.get('V1', 'N/A') }}...
+                            {{ row.get('V1', 'N/A') }}
                         </td>
                     </tr>
                     {% endfor %}
