@@ -9,7 +9,7 @@ import os
 import secrets
 import pandas as pd
 import joblib
-from flask import Flask, render_template, request, make_response, jsonify, send_file, redirect, url_for
+from flask import Flask, render_template, request, jsonify, send_file, redirect
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)
