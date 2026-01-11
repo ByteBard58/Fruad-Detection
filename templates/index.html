@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="fade-in">
+    <div style="text-align: center; margin-bottom: 4rem;">
+        <h1 style="font-size: 3rem; margin-bottom: 1rem;">Secure Batch Analysis</h1>
+        <p style="color: var(--text-secondary); max-width: 600px; margin: 0 auto; font-size: 1.1rem;">
+            Upload your anonymized transaction dataset (`.csv`) for instant fraud detection. 
+            Our XGBoost-powered engine scans thousands of records in seconds.
+        </p>
+    </div>
+
+    <div class="card" style="max-width: 800px; margin: 0 auto;">
+        <form id="uploadForm" action="/analyze" method="post" enctype="multipart/form-data">
+            <div class="upload-area" id="dropZone">
+                <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+                <div class="upload-text">Drag & Drop CSV File Here</div>
+                <div class="upload-subtext">or click to browse local files</div>
+                <input type="file" name="file" id="fileInput" accept=".csv" required>
+            </div>
+            
+            <div id="fileInfo" style="margin-top: 1.5rem; text-align: center; display: none;">
+                <p style="color: var(--accent-cyan); margin-bottom: 1rem;">
+                    <i class="fa-solid fa-file-csv"></i> <span id="fileName">selected_file.csv</span>
+                </p>
+                <button type="submit" class="btn btn-solid">
+                    <i class="fa-solid fa-magnifying-glass-chart"></i> Run Analysis
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Features Grid -->
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; margin-top: 5rem;">
+        <div style="text-align: center;">
+            <i class="fa-solid fa-lock" style="color: var(--accent-cyan); font-size: 2rem; margin-bottom: 1rem;"></i>
+            <h3>Private & Secure</h3>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.5rem;">
+                Processing happens locally. Your data never leaves this machine.
+            </p>
+        </div>
+        <div style="text-align: center;">
+            <i class="fa-solid fa-bolt" style="color: var(--accent-cyan); font-size: 2rem; margin-bottom: 1rem;"></i>
+            <h3>Lightning Fast</h3>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.5rem;">
+                Optimized XGBoost implementation for rapid batch scoring.
+            </p>
+        </div>
+        <div style="text-align: center;">
+            <i class="fa-solid fa-chart-pie" style="color: var(--accent-cyan); font-size: 2rem; margin-bottom: 1rem;"></i>
+            <h3>Actionable Intelligence</h3>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.5rem;">
+                Get clear risk probabilities and downloadable reports.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loader"></div>
+    <div class="loading-text">SCANNING TRANSACTIONS...</div>
+</div>
+{% endblock %}
