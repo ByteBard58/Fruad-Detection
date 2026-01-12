@@ -1,0 +1,39 @@
+# Version Control
+.git
+.gitignore
+.github
+
+# Environment Variables
+.env
+.env.example
+
+# Python cache
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+
+# Datasets
+# Exclude heavy datasets to keep image size small
+Dataset/
+data/
+
+# Generated Runtime Files
+uploads/
+processed/
+reports/
+
+# IDE settings
+.vscode
+.idea
+*.swp
+
+# Notebooks and Research specific files (not needed for production app)
+research.py
+__marimo__
+*.ipynb
+
+# Local virtual environments
+venv/
+env/
+.venv/
