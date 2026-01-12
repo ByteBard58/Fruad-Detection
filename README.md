@@ -68,9 +68,15 @@ Here is the **Classification Report** for the final model:
 | macro avg    |        1.00 |     1.00 |       1.00 |     10000 |
 | weighted avg |        1.00 |     1.00 |       1.00 |     10000 |
 
-*Note: The model achieves near-perfect scores on the test set, demonstrating extreme robustness.*
+
 
 You can find the detailed research code in the [research.py](research.py) file included in the repo. However, for the best viewing experience, use the HTML copy of the notebook which is available in the [research.html](reports/research.html) file.
+
+
+### Performance Note
+The model achieves near-perfect performance on the provided dataset. This behavior was investigated using a label-shuffling diagnostic test, which reduced performance to random chance (~50%), confirming the absence of data leakage.
+
+The dataset is already anonymized, balanced, and pre-processed (PCA-transformed), which significantly simplifies the classification task. As such, these results should be viewed as a demonstration of modeling correctness rather than real-world deployability.
 
 ---
 
