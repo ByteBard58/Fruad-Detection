@@ -1,4 +1,4 @@
-# Dockerfile (urbanecho)
+# Dockerfile (fraudguard)
 FROM python:3.11-slim
 
 # Avoid interactive prompts
