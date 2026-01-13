@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.18.4"
+__generated_with = "0.19.1"
 app = marimo.App(width="medium")
 
 
@@ -38,6 +38,7 @@ def _():
     import matplotlib.pyplot as plt
     import seaborn as sns
 
+    from sklearn.base import clone
     from sklearn.linear_model import LogisticRegression
     from sklearn.svm import SVC
     from sklearn.ensemble import RandomForestClassifier, StackingClassifier, BaggingClassifier
@@ -65,6 +66,7 @@ def _():
         StandardScaler,
         XGBClassifier,
         classification_report,
+        clone,
         confusion_matrix,
         learning_curve,
         np,
@@ -479,6 +481,89 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    ### Label Shuffling Test
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    The classification report has unlocked a new suspicion. In the real world, we never actually get a purely perfect score out of any model unless two things happen:
+    1. The task is too simple.
+    2. The model is affected by data leakage.
+
+    Option 1 will not apply here because the task of predicting fraudulent transactions is not quite simple. So, suspicion about data leakage obviously arises.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    To check for data leakage, we will conduct the **Label-Shuffling Test** by randomizing y_train. This disrupts the feature-label relationship. If the model’s score drops to around 0.50, it indicates no data leakage.
+    """)
+    return
+
+
+@app.cell
+def _(clone, est):
+    est_lst = clone(est)   # Cloning the original `est` for label-shuffle test
+    return (est_lst,)
+
+
+@app.cell
+def _(classification_report, est_lst, np, x_test, x_train, y_test, y_train):
+    y_shuffled = np.random.permutation(y_train)    # Randomizing the y_train set
+    est_lst.fit(x_train,y_shuffled)
+
+    y_true_lst = y_test
+    y_pred_lst = est_lst.predict(x_test)
+    print(classification_report(y_true_lst,y_pred_lst))
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    The result clarifies our confusion. The model’s performance significantly worsens when the feature-label relation is destroyed. If it were a leaked model, it would perform much worse since it would have trained on leaked test data.
+
+    Therefore, our model is free from data leakage.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Dataset Characteristics and Implications
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    The dataset consists of anonymized transaction features (V1–V28) that have already undergone **dimensionality reduction** and **normalization**.
+    Additionally, the dataset is **class-balanced**, whereas real-world fraud detection typically exhibits **extreme class imbalance**.
+
+    These characteristics significantly simplify the classification task and can result in **unusually high performance** when combined with expressive models such as XGBoost.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    While the model achieves excellent performance on this dataset, the results **should not be interpreted** as representative of real-world fraud detection systems.
+    In practice, fraud datasets are highly imbalanced, subject to concept drift, and rarely exhibit such clean separability.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ### PCA Loading
     """)
     return
@@ -526,7 +611,7 @@ def _(comps, exp_var, np):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ### Create Loading DataFrame
+    Create Loading DataFrame
     """)
     return
 
