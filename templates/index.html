@@ -14,6 +14,13 @@
         </p>
     </div>
 
+    <!-- Error Alert -->
+    {% if error %}
+    <div style="max-width: 800px; margin: 0 auto 2rem auto; background-color: rgba(255, 68, 68, 0.1); border: 1px solid #ff4444; padding: 1rem; border-radius: 8px; text-align: center; color: #ff4444;">
+        <i class="fa-solid fa-triangle-exclamation"></i> {{ error }}
+    </div>
+    {% endif %}
+
     <div class="card" style="max-width: 800px; margin: 0 auto;">
         <form id="uploadForm" action="/analyze" method="post" enctype="multipart/form-data">
             <div class="upload-area" id="dropZone">
