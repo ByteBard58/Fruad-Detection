@@ -185,6 +185,6 @@ Sakib ( ByteBard58 )
 ## 😃 Appreciation
 I appreciate you taking the time to look over my work. I hope you found it interesting and enjoyable. If you could star it on GitHub, it would be really appreciated. 🌟
 
-Do not hesitate to contact us if you have any queries, recommendations, or topics you would want to talk about. My [GitHub profile page] (http://www.github.com/ByteBard58) has my contact details.
+Do not hesitate to contact us if you have any queries, recommendations, or topics you would want to talk about. My [GitHub profile page](http://www.github.com/ByteBard58) has my contact details.
 
 Have a great day !
